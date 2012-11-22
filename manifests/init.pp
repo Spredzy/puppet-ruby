@@ -2,7 +2,6 @@
 #
 # Ensure Ruby is installed either by native packages or from source
 #
-#
 # Parameters:
 #
 #   [*provider*] : packages or source
@@ -11,6 +10,9 @@
 # Requires:
 #
 # Examples
+#
+#   class {'ruby' :
+#   }
 #
 #   class {'ruby' :
 #     provider => 'source',
@@ -23,8 +25,8 @@
 #   }
 #
 class ruby (
-      $provider,
-      $version = $ruby::params::ruby_version_long) inherits ruby::params {
+      $provider = 'package',
+      $version = 'latest') inherits ruby::params {
 
   case $provider {
     'package' : {
@@ -56,11 +58,13 @@ class ruby (
         # If all you want is the same version regarding the variant just add a start after ${ruby_version}\' which would become ${ruby_version}\'*
         # If what you want is to have the exact variant specified then don't change anything
         #
-        unless   => "[[ `ruby -v | cut -d\' \' -f2` = \'${ruby_version}\' ]]",
-        provider => 'shell',
-        require  => Package[$ruby::params::packages],
+        unless    => 'test `ruby -v | cut -d\' \' -f2` == "1.9.3p194"',
+        #unless   => "[[ `ruby -v | cut -d\' \' -f2` = \'${ruby_version}\'* ]]",
+        #unless   => "\"[[ `ruby -v | cut -d\' \' -f2` = \'${version}\' ]]\"",
+        #provider => 'shell',
+        require   => Package[$ruby::params::packages],
       }
     }
-    default : { fail("[ruby] The provider you select ${provider} is not valid") }
+    default : { fail("[ruby] The provider you selected ${provider} is not valid") }
   }
 }
