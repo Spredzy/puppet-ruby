@@ -9,6 +9,8 @@
 #
 # Requires:
 #
+#   [*epel*] : stahnma/epel
+#
 # Examples
 #
 #   class {'ruby' :
@@ -28,6 +30,10 @@ class ruby (
       $provider = 'package',
       $version = 'latest') inherits ruby::params {
 
+  Class['epel'] -> Class['ruby']
+
+  include epel
+
   case $provider {
     'package' : {
       package {'ruby' :
@@ -36,21 +42,17 @@ class ruby (
     }
     'source' : {
 
-      class {'epel' :
-      }
-
       package {[$ruby::params::packages] :
         ensure  => latest,
-        require => Class['epel'],
       }
 
       $ruby_branch = branch($version)
       $ruby_version = version($version)
 
-      exec {"curl -L http://ftp.ruby-lang.org/pub/ruby/${ruby_branch}/ruby-${version}.tar.gz | tar -xzf - && cd ruby-${version} && ./configure && make && make install" :
+      exec {"curl -L http://ftp.ruby-lang.org/pub/ruby/${ruby_branch}/ruby-${version}.tar.gz | tar -xzf - && cd ruby-${version} && ./configure && make && make install && rm -rf /root/ruby-${version}.tar.gz" :
         cwd       => '/root',
         user      => 'root',
-        path      => ['/usr/bin', '/usr/local/bin', '/bin'],
+        path      => ['/usr/local/bin', '/bin', '/usr/bin'],
         timeout   => 0,
         logoutput => on_failure,
         #
@@ -58,11 +60,10 @@ class ruby (
         # If all you want is the same version regarding the variant just add a start after ${ruby_version}\' which would become ${ruby_version}\'*
         # If what you want is to have the exact variant specified then don't change anything
         #
-        unless    => 'test `ruby -v | cut -d\' \' -f2` == "1.9.3p194"',
-        #unless   => "[[ `ruby -v | cut -d\' \' -f2` = \'${ruby_version}\'* ]]",
-        #unless   => "\"[[ `ruby -v | cut -d\' \' -f2` = \'${version}\' ]]\"",
-        #provider => 'shell',
-        require   => Package[$ruby::params::packages],
+        unless   => "[[ `ruby -v | cut -d\' \' -f2` = \'${ruby_version}\'* ]]",
+        #unless  => "\"[[ `ruby -v | cut -d\' \' -f2` = \'${version}\' ]]\"",
+        provider => 'shell',
+        require  => Package[$ruby::params::packages],
       }
     }
     default : { fail("[ruby] The provider you selected ${provider} is not valid") }
