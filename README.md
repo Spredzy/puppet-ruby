@@ -16,11 +16,10 @@ This example will install the latest version from your package manager
 
 ```
 class {'ruby':
-  provider  =>  'package',
-  version   =>  '1.8.7',
+  version   =>  'ruby1.9.3',
 }
 ```
-This example will install the specified version from your package manager
+This example will install the specified version from your package manager (osfamilly: Debian)
 
 ### Via Source
 ```

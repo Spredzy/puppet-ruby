@@ -9,7 +9,9 @@
 #
 # Requires:
 #
-#   [*epel*] : stahnma/epel
+#   [*epel*]    : stahnma/epel
+#   [*facter*]  : 1.6.x+
+#   [*puppet*]  : 3.0.x+
 #
 # Examples
 #
@@ -18,30 +20,30 @@
 #
 #   class {'ruby' :
 #     provider => 'source',
-#     version  => '1.9.3-p134',
-#   }
-#
-#   class {'ruby' :
-#     provider => 'package',
-#     version  => '1.8.7',
+#     version  => '1.9.3-p194',
 #   }
 #
 class ruby (
       $provider = 'package',
-      $version  = 'latest'
+      $version  = 'latest',
+      $ruby_package_name = 'ruby'
 ) {
 
-  Class['epel'] -> Class['ruby']
-
-  include epel, ruby::params
+  include ruby::params
 
   case $provider {
     'package' : {
-      package {'ruby' :
+      package {$ruby_package_name :
         ensure => $version,
       }
     }
     'source' : {
+
+      if $::osfamily == "RedHat" {
+        class {'epel' :
+          before => Class['ruby'],
+        }
+      }
 
       package {[$ruby::params::packages] :
         ensure  => latest,
@@ -50,7 +52,7 @@ class ruby (
       $ruby_branch  = branch($version)
       $ruby_version = version($version)
 
-      exec {"curl -L http://ftp.ruby-lang.org/pub/ruby/${ruby_branch}/ruby-${version}.tar.gz | tar -xzf - && cd ruby-${version} && ./configure && make && make install && rm -rf /root/ruby-${version}.tar.gz" :
+      exec {"curl -L http://ftp.ruby-lang.org/pub/ruby/${ruby_branch}/ruby-${version}.tar.gz | tar -xzf - && cd ruby-${version} && ./configure && make && make install && rm -rf /root/ruby-${version}" :
         cwd       =>  '/root',
         user      =>  'root',
         path      =>  ['/usr/local/bin', '/bin', '/usr/bin'],
@@ -67,7 +69,7 @@ class ruby (
         #
         # ie. 1.9.3-p125 AND 1.9.3-p194 will end up in false here
         #
-        #unless   =>  "\"[[ `ruby -v | cut -d\' \' -f2` = \'${version}\' ]]\"",
+        #unless   =>  "[[ `ruby -v | cut -d\' \' -f2` = \'${version}\' ]]",
         provider  =>  'shell',
         require   =>  Package[$ruby::params::packages],
       }
