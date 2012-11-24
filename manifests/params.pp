@@ -4,7 +4,7 @@
 #
 # Parameters:
 #
-#   [*packages*] : Ruby dependencies packages, needed when doing an installation from source 
+#   [*packages*] : Ruby dependencies packages, needed when doing an installation from source
 #
 # Actions:
 #

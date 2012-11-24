@@ -4,8 +4,8 @@
 #
 # Parameters:
 #
-#   [*provider*] : packages or source
-#   [*version*] : The ruby number version you want
+#   [*provider*]  : packages or source
+#   [*version*]   : The ruby number version you want
 #
 # Requires:
 #
@@ -28,11 +28,12 @@
 #
 class ruby (
       $provider = 'package',
-      $version = 'latest') inherits ruby::params {
+      $version  = 'latest'
+) {
 
   Class['epel'] -> Class['ruby']
 
-  include epel
+  include epel, ruby::params
 
   case $provider {
     'package' : {
@@ -46,24 +47,29 @@ class ruby (
         ensure  => latest,
       }
 
-      $ruby_branch = branch($version)
+      $ruby_branch  = branch($version)
       $ruby_version = version($version)
 
       exec {"curl -L http://ftp.ruby-lang.org/pub/ruby/${ruby_branch}/ruby-${version}.tar.gz | tar -xzf - && cd ruby-${version} && ./configure && make && make install && rm -rf /root/ruby-${version}.tar.gz" :
-        cwd       => '/root',
-        user      => 'root',
-        path      => ['/usr/local/bin', '/bin', '/usr/bin'],
-        timeout   => 0,
-        logoutput => on_failure,
+        cwd       =>  '/root',
+        user      =>  'root',
+        path      =>  ['/usr/local/bin', '/bin', '/usr/bin'],
+        timeout   =>  0,
+        logoutput =>  on_failure,
         #
-        # A single version of ruby can have variants ie. 1.9.3-p194 1.9.3-rc-1
-        # If all you want is the same version regarding the variant just add a start after ${ruby_version}\' which would become ${ruby_version}\'*
-        # If what you want is to have the exact variant specified then don't change anything
+        # If what matters is the version number, use this unless condition
         #
-        unless   => "[[ `ruby -v | cut -d\' \' -f2` = \'${ruby_version}\'* ]]",
-        #unless  => "\"[[ `ruby -v | cut -d\' \' -f2` = \'${version}\' ]]\"",
-        provider => 'shell',
-        require  => Package[$ruby::params::packages],
+        # ie. 1.9.3-p125 AND 1.9.3-p194 will both be true here
+        #
+        unless    =>  "[[ `ruby -v | cut -d\' \' -f2` = \'${ruby_version}\'* ]]",
+        #
+        # If what matter is the ruby release number, us this unless condition
+        #
+        # ie. 1.9.3-p125 AND 1.9.3-p194 will end up in false here
+        #
+        #unless   =>  "\"[[ `ruby -v | cut -d\' \' -f2` = \'${version}\' ]]\"",
+        provider  =>  'shell',
+        require   =>  Package[$ruby::params::packages],
       }
     }
     default : { fail("[ruby] The provider you selected ${provider} is not valid") }
