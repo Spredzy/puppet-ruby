@@ -63,13 +63,13 @@ class ruby (
         #
         # ie. 1.9.3-p125 AND 1.9.3-p194 will both be true here
         #
-        unless    =>  "[[ `ruby -v | cut -d\' \' -f2` = \'${ruby_version}\'* ]]",
+        unless    =>  "/bin/bash -c \"[[ `ruby -v | cut -d\' \' -f2` = \'${ruby_version}\'* ]]\"",
         #
         # If what matter is the ruby release number, us this unless condition
         #
         # ie. 1.9.3-p125 AND 1.9.3-p194 will end up in false here
         #
-        #unless   =>  "[[ `ruby -v | cut -d\' \' -f2` = \'${version}\' ]]",
+        #unless   =>  "/bin/bash -c \"[[ `ruby -v | cut -d\' \' -f2` = \'${version}\' ]]\"",
         provider  =>  'shell',
         require   =>  Package[$ruby::params::packages],
       }
