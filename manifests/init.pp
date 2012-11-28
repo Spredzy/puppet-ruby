@@ -39,14 +39,10 @@ class ruby (
     }
     'source' : {
 
-      if $::osfamily == "RedHat" {
-        class {'epel' :
-          before => Class['ruby'],
-        }
-      }
+      require devtools
 
-      package {[$ruby::params::packages] :
-        ensure  => latest,
+      if $::osfamily == "RedHat" {
+        require epel
       }
 
       $ruby_branch  = branch($version)
@@ -71,7 +67,6 @@ class ruby (
         #
         #unless   =>  "/bin/bash -c \"[[ `ruby -v | cut -d\' \' -f2` = \'${version}\' ]]\"",
         provider  =>  'shell',
-        require   =>  Package[$ruby::params::packages],
       }
     }
     default : { fail("[ruby] The provider you selected ${provider} is not valid") }
