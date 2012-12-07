@@ -4,19 +4,18 @@
 #
 # Parameters:
 #
-#   [*provider*]  : packages or source
-#   [*version*]   : The ruby number version you want
+#   [*provider*]            : packages or source
+#   [*version*]             : The ruby number version you want
+#   [*ruby_package_name*]   : The ruby package name that you want to insall
 #
 # Requires:
 #
-#   [*epel*]    : stahnma/epel
-#   [*facter*]  : 1.6.x+
-#   [*puppet*]  : 3.0.x+
+#   [*epel*]        : stahnma/epel
+#   [*devtools*]    : yguenane/devtools
 #
-# Examples
+# Examples:
 #
-#   class {'ruby' :
-#   }
+#   includ ruby
 #
 #   class {'ruby' :
 #     provider => 'source',
@@ -24,9 +23,9 @@
 #   }
 #
 class ruby (
-      $provider = 'package',
-      $version  = 'latest',
-      $ruby_package_name = 'ruby'
+      $provider           = 'package',
+      $version            = 'latest',
+      $ruby_package_name  = 'ruby'
 ) {
 
   include ruby::params
@@ -40,10 +39,6 @@ class ruby (
     'source' : {
 
       require devtools
-
-      if $::osfamily == "RedHat" {
-        require epel
-      }
 
       $ruby_branch  = branch($version)
       $ruby_version = version($version)
